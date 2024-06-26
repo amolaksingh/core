@@ -1,7 +1,7 @@
 package com.core
 
 import android.app.Activity
-import io.horizontalsystems.core.BackgroundManager
+import com.core.BackgroundManager
 import io.reactivex.Flowable
 import java.util.Date
 import javax.crypto.SecretKey

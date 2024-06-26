@@ -2,7 +2,7 @@ package com.core
 
 import android.app.Application
 import android.content.Context
-import io.horizontalsystems.core.BackgroundManager
+import com.core.BackgroundManager
 import com.core.helpers.LocaleHelper
 import java.util.Locale
 
