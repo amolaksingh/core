@@ -1,0 +1,63 @@
+plugins {
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.jetbrains.kotlin.android)
+    id 'maven-publish'
+}
+
+android {
+    namespace 'com.core'
+    compileSdk 34
+
+    defaultConfig {
+        minSdk 26
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation libs.kotlin.stdlib.jdk7
+    implementation libs.androidx.appcompat
+    implementation libs.androidx.constraintlayout.v201
+    implementation libs.androidx.core.ktx
+
+    implementation libs.androidx.fragment.ktx
+    // Navigation component
+    api libs.androidx.navigation.fragment.ktx
+    api libs.androidx.navigation.ui.ktx
+
+    implementation libs.rxjava
+    implementation libs.androidx.biometric
+    implementation libs.material
+
+    testImplementation libs.junit
+}
+
+publishing {
+    publications {
+        register(MavenPublication) {
+            groupId = "com.github.amolaksingh"
+            artifactId = "wallet-core"
+            version = "1.0.0"
+            afterEvaluate {
+                from(components["release"])
+            }
+        }
+    }
+}
