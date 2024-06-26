@@ -4,7 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import androidx.constraintlayout.widget.ConstraintLayout
-import io.horizontalsystems.chartview.databinding.ViewChartMinimalBinding
+import com.chartview.databinding.ViewChartMinimalBinding
 import com.chartview.models.ChartConfig
 
 class ChartMinimal @JvmOverloads constructor(
