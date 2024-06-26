@@ -17,6 +17,8 @@ class MainActivity : AppCompatActivity() {
             insets
         }
        // val abc = MainActivity().onCreate()
+       // val abc  = CoreApp.backgroundManager
+       // val abc = MainActivity().onCreate()
     }
 
 }

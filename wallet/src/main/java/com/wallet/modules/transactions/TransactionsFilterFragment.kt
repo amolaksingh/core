@@ -1,0 +1,250 @@
+package com.wallet.modules.transactions
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Icon
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.navGraphViewModels
+import com.wallet.R
+import com.wallet.core.BaseComposeFragment
+import com.wallet.core.badge
+import com.wallet.core.slideFromRight
+import com.wallet.core.slideFromRightForResult
+import com.wallet.modules.evmfee.ButtonsGroupWithShade
+import com.wallet.ui.compose.ComposeAppTheme
+import com.wallet.ui.compose.TranslatableString
+import com.wallet.ui.compose.components.AppBar
+import com.wallet.ui.compose.components.ButtonPrimaryYellow
+import com.wallet.ui.compose.components.CellSingleLineLawrenceSection
+import com.wallet.ui.compose.components.HsBackButton
+import com.wallet.ui.compose.components.HsSwitch
+import com.wallet.ui.compose.components.InfoText
+import com.wallet.ui.compose.components.MenuItem
+import com.wallet.ui.compose.components.VSpacer
+import com.wallet.ui.compose.components.body_leah
+
+class TransactionsFilterFragment : BaseComposeFragment() {
+
+    private val viewModel by navGraphViewModels<TransactionsViewModel>(R.id.mainFragment)
+
+    @Composable
+    override fun GetContent(navController: NavController) {
+        FilterScreen(
+            navController,
+            viewModel
+        )
+    }
+
+}
+
+
+@Composable
+fun FilterScreen(
+    navController: NavController,
+    viewModel: TransactionsViewModel,
+) {
+    val filterResetEnabled by viewModel.filterResetEnabled.observeAsState(false)
+    val filterCoins by viewModel.filterTokensLiveData.observeAsState()
+    val filterBlockchains by viewModel.filterBlockchainsLiveData.observeAsState()
+    val filterHideUnknownTokens = viewModel.filterHideSuspiciousTx.observeAsState(true)
+    val filterContact by viewModel.filterContactLiveData.observeAsState()
+
+    val filterCoin = filterCoins?.find { it.selected }?.item
+    val coinCode = filterCoin?.token?.coin?.code
+    val badge = filterCoin?.token?.badge
+    val selectedCoinFilterTitle = when {
+        badge != null -> "$coinCode ($badge)"
+        else -> coinCode
+    }
+
+    val filterBlockchain = filterBlockchains?.firstOrNull { it.selected }?.item
+
+    Scaffold(
+        backgroundColor = ComposeAppTheme.colors.tyler,
+        topBar = {
+            AppBar(
+                title = stringResource(R.string.Transactions_Filter),
+                navigationIcon = {
+                    HsBackButton(onClick = navController::popBackStack)
+                },
+                menuItems = listOf(
+                    MenuItem(
+                        title = TranslatableString.ResString(R.string.Button_Reset),
+                        enabled = filterResetEnabled,
+                        onClick = {
+                            viewModel.resetFilters()
+                        }
+                    )
+                )
+            )
+        }
+    ) {
+        Column(Modifier.padding(it)) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                VSpacer(12.dp)
+                CellSingleLineLawrenceSection(
+                    listOf {
+                        FilterDropdownCell(
+                            title = stringResource(R.string.Transactions_Filter_Blockchain),
+                            value = filterBlockchain?.name ?: stringResource(id = R.string.Transactions_Filter_AllBlockchains) ,
+                            valueColor = if (filterBlockchain != null) ComposeAppTheme.colors.leah else ComposeAppTheme.colors.grey,
+                            onClick = {
+                                navController.slideFromRight(R.id.filterBlockchainFragment)
+                            }
+                        )
+                    }
+                )
+                VSpacer(32.dp)
+                CellSingleLineLawrenceSection(
+                    listOf {
+                        FilterDropdownCell(
+                            title = stringResource(R.string.Transactions_Filter_Coin),
+                            value = selectedCoinFilterTitle ?: stringResource(id = R.string.Transactions_Filter_AllCoins) ,
+                            valueColor = if (filterBlockchain != null) ComposeAppTheme.colors.leah else ComposeAppTheme.colors.grey,
+                            onClick = {
+                                navController.slideFromRight(R.id.filterCoinFragment)
+                            }
+                        )
+                    }
+                )
+                VSpacer(32.dp)
+                CellSingleLineLawrenceSection(
+                    listOf {
+                        FilterDropdownCell(
+                            title = stringResource(R.string.Transactions_Filter_Contacts),
+                            value = filterContact?.name ?: stringResource(id = R.string.Transactions_Filter_AllContacts) ,
+                            valueColor = if (filterContact != null) ComposeAppTheme.colors.leah else ComposeAppTheme.colors.grey,
+                            onClick = {
+                                navController.slideFromRightForResult<SelectContactFragment.Result>(
+                                    R.id.selectContact,
+                                    SelectContactFragment.Input(filterContact, filterBlockchain?.type)
+                                ) {
+                                    viewModel.onEnterContact(it.contact)
+                                }
+                            }
+                        )
+                    }
+                )
+                VSpacer(32.dp)
+                CellSingleLineLawrenceSection(
+                    listOf {
+                        FilterSwitch(
+                            title = stringResource(R.string.Transactions_Filter_HideSuspiciousTx),
+                            enabled = filterHideUnknownTokens.value,
+                            onChecked = { checked ->
+                                viewModel.updateFilterHideSuspiciousTx(checked)
+                            }
+                        )
+                    }
+                )
+                InfoText(
+                    text = stringResource(R.string.Transactions_Filter_StablecoinDustAmount_Description),
+                )
+                VSpacer(24.dp)
+            }
+
+            ButtonsGroupWithShade {
+                ButtonPrimaryYellow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    title = stringResource(R.string.Button_Apply),
+                    onClick = {
+                        navController.popBackStack()
+                    },
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun FilterDropdownCell(
+    title: String,
+    value: String,
+    valueColor: Color,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxHeight()
+            .clickable {
+                onClick.invoke()
+            }
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        body_leah(
+            text = title,
+            modifier = Modifier.weight(1f),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Row(
+            Modifier.fillMaxHeight(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = value,
+                maxLines = 1,
+                style = ComposeAppTheme.typography.body,
+                color = valueColor
+            )
+            Icon(
+                modifier = Modifier.padding(start = 4.dp),
+                painter = painterResource(id = com.icons.R.drawable.ic_down_arrow_20),
+                contentDescription = null,
+                tint = ComposeAppTheme.colors.grey
+            )
+        }
+    }
+}
+
+@Composable
+private fun FilterSwitch(
+    title: String,
+    enabled: Boolean,
+    onChecked: (Boolean) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxHeight()
+            .clickable { onChecked(!enabled) }
+            .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        body_leah(
+            text = title,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Spacer(Modifier.weight(1f))
+        HsSwitch(
+            checked = enabled,
+            onCheckedChange = onChecked,
+        )
+    }
+}
