@@ -1,4 +1,4 @@
-package io.horizontalsystems.core
+package com.core
 
 import android.app.Activity
 import android.app.Application
