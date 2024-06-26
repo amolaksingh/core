@@ -25,3 +25,4 @@ rootProject.name = "WalletCore"
 include ':app'
 include ':Core'
 include ':icons'
+include ':chartview'
