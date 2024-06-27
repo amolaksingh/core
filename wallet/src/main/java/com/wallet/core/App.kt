@@ -124,7 +124,7 @@ import java.util.logging.Level
 import java.util.logging.Logger
 import androidx.work.Configuration as WorkConfiguration
 
-class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
+open class App : CoreApp(), WorkConfiguration.Provider, ImageLoaderFactory {
 
     companion object : ICoreApp by CoreApp {
 
